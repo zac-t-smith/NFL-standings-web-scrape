@@ -1,0 +1,35 @@
+import requests
+from bs4 import BeautifulSoup
+import re
+import pandas as pd
+
+# create a variable to hold the url I want to scrape
+url = 'https://www.worldometers.info/world-population/'
+# check the request status, to ensure we can collect data
+page = requests.get(url) 
+
+# create a variable that pulls the HTML doc
+soup = BeautifulSoup(page.text, 'lxml')
+
+# variable for the table we want to pull data on 
+world_population = soup.find('table', class_ = 'table table-striped table-bordered table-hover table-condensed table-list')
+
+# the headers variable is an empty list that we will put our population data into
+headers = []
+for i in world_population.find_all('th'):
+    population = i.text
+    headers.append(population)
+    
+# data frame to illustrate the data we are extracting
+df = pd.DataFrame(columns = headers)
+
+# this for loop goes threw each block in the row, ecluding the header, counts the rows needed, and tells the df variable to create the necessary amount
+for j in world_population.find_all('tr')[1:]:
+    row_data = j.find_all('td')
+    row = [tr.text for tr in row_data]
+    length = len(df)
+    df.loc[length] = row
+    
+    # send the data table we created to a new CSV that we can open in excel 
+    df.to_csv('C:/Users/ZacTS/OneDrive/Documents/web-scraping.csv')
+    
